@@ -1,0 +1,72 @@
+version: "3"
+
+# 'services'는 '컨테이너'와 아주 유사한 개념이라 생각하면 됨.
+# 아래에서는 2개의 서비스(web과 tests)를 정의하고 있음.
+services:
+  # [ service 1 ]
+  # < 서비스 web >
+  # - 첫 번째 서비스로, 클라이언트 웹 애플리케이션을 구동하는 서비스임.
+  web:
+    # < build >
+    # - 도커 이미지 빌드 명령에 대한 구성 옵션을 제공함.
+    build:
+      # < context >
+      # - Dockerfile에서 이미지 빌드를 수행할 '경로'를 설정하는 옵션.
+      #   도커 컨테이너를 생성하기 위한 내 로컬 머신 호스트 파일 시스템 '경로'를 지정하는 것임.
+      # - 여기서는 빌드 컨텍스를 현재 디렉토리('.')로 지정하여 Docker daemon에 전달됨.
+      context: .
+      # < dockerfile >
+      # - 이 이미지 빌드에 사용할 '도커 파일'을 지정함.
+      # - 여기서는 'Dockerfile.dev 파일'로 지정함.
+      dockerfile: Dockerfile.dev
+    # < ports >
+    # - 내 로컬 컴퓨터 호스트 머신의 포트(좌측 3000번)와 컨테이너 내부의 포트(우측 3000번)을 포트 매핑(연결)하는 것임.
+    ports:
+      - "3000:3000"
+    # < volumes >
+    # - 외부 도커 볼륨과 컨테이너 내부 경로를 매핑할 목록을 제공함. 여기서는 두 개의 볼륨 설정 쌍이 포함되어 있음.
+    volumes:
+      # < /home/node/app/node_modules >
+
+      # - 이건 그냥 저 호스트 경로에 '도커 볼륨을 생성'하고, 거기에 Dockerfile.dev의 로직 순서에 따라
+      #   그 경로(/home/node/app)에 npm을 설치(RUN npm install) 한다는 뜻인 것 같음.
+      #   즉, 전체 소스코드와 구분시켜서 npm node_modules만 별개로 그 도커 볼륨에 따로 때려박는다는 뜻임.
+
+      # - '호스트의 /home/node/app/node_modules 디렉토리'에 '컨테이너 내부의 /home/node/app/node_modules'에 대한
+      #   고유의 익명 볼륨을 생성하여 마운트(연결)함.
+      #   여기서처럼 '호스트 경로'를 명시적으로 지정하지 않은 경우, 도커에 의해 자동으로 볼륨이 생성되고 관리된다!
+      #   즉, '익명 볼륨'이다(??? 확실히)'.
+      # - node_modules와 같이, 호스트와 컨테이너 간 동기화가 불필요한 경웨 사용됨.ㄷ
+      # - 이제, '호스트의 /home/node/app/node_modules 디렉토리'와 '컨테이너 내부의 /home/node/app/node_modules 디렉토리' 간에
+      #   데이터를 공유하게 됨. 즉, '호스트의 node_modules 디렉토리'를 컨테이너에 연결하므로, 호스트에서 노드 패키지를 관리하는데 유용함.
+      # - 컨테이너를 재시작하거나 다시 빌드해도, '호스트의 /home/node/app/node_modules 경로'에 저장된 데이터가 영구적으로 보존됨.
+      #   따라서, 빌드 시간 단축 및 리소스 사용 절약.
+      # - '컨테이너 내부의 node_modules 디렉토리'를 외부의 독립된 도커 볼륨에 저장하여 데이터가 유실되지 않게 됨.
+      - /home/node/app/node_modules # 컨테이너 내부의 데이터 저장소 경로
+      # < ./clinet:/home/node/app >
+      # - '호스트의 ./client 디렉토리'와 '컨테이너 내부의 /home/node/app 디렉토리'를 매핑(연결)함.
+      # - 두 경로가 실시간으로 동기화되어, '호스트의 ./client 디렉토리'에 속한 파일과 폴더는 코드 수정 시 실시간으로
+      #   '컨테이너(정확히는 컨테이너 내부의 /home/node/app)에 반영되어 즉각적 파일 동기화를 수행함.
+      # - 이 설정은 애플리케이션 개발 과정에서 소스 코드를 실시간으로 공유하려 할 때 주로 사용되며, 나중에 배포 시에는
+      #   빌드된 파일만 포함되도록 설정하는 것이 일반적임.
+      - ./client:/home/node/app
+  # [ service 2 ]
+  # < 서비스 tests >
+  # -
+  tests:
+    # < build >
+    # - 도커 이미지 빌드 명령에 대한 구성 옵션을 제공함.
+    build:
+      # < context >
+      # - Dockerfile에서 이미지 빌드를 수행할 '경로'를 설정하는 옵션.
+      #   도커 컨테이너를 생성하기 위한 내 로컬 머신 호스트 파일 시스템 '경로'를 지정하는 것임.
+      # - 여기서는 빌드 컨텍스를 현재 디렉토리('.')로 지정하여 Docker daemon에 전달됨.
+      context: .
+      # < dockerfile >
+      # - 이 이미지 빌드에 사용할 '도커 파일'을 지정함.
+      # - 여기서는 'Dockerfile.dev 파일'로 지정함.
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - .:/app
+    command: ["npm", "run", "test"]
