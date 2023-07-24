@@ -1,3 +1,7 @@
+# 오직 배포용 도커파일
+# test하려는 용도는 Dockerfile.dev 를 빌드해서 해야 한다. 
+# 이 도커파일 빌드해도 test용으로는 할 수 없다!
+
 FROM node:16-alpine as builder
 WORKDIR '/app'
 COPY package.json .
