@@ -1,0 +1,13 @@
+# 여기서 Travis는 최종 배포 전에 테스트했을 때, 그 테스트가 성공했는지 실패했는지 여부를 알려줌.  
+
+sudo: required
+services:
+  - docker
+  
+# 최종본 배포하기 전에 테스트하기 위해, test용으로 작성된 Dockerfile.dev를 빌드함  
+before_install:
+  - docker build -t yujong/docker-react -f Dockerfile.dev .
+
+# 실제 테스트 코드를 실행시키는 부분
+script:
+  - docker run -e CI=true yujong/docker-react npm run test
