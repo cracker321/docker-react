@@ -11,3 +11,19 @@ before_install:
 # 실제 테스트 코드를 실행시키는 부분
 script:
   - docker run -e CI=true yujong/docker-react npm run test
+
+deploy:
+  provider: elasticbeanstalk
+  region: "ap-northeast-2"
+  app: "docker-react" # Application name. 'AWS Elastic Beanstalk > Applciations' 이 경로 확인하면 됨.
+  env: "Docker-react-env" # Environments. 'AWS Elastic Beanstalk > Environments' 이 경로 확인하면 됨.
+  bucket_name: "elasticbeanstalk-ap-northeast-2-034686923175" # S3 버킷 이름. 'Amazon S3 > Buckets > 이 자리'. 이 경로 확인하면 됨.
+  bucket_path: "docker-react" # 최초에는 'app 이름'과 동일함.
+  on:
+    branch: main # 깃헙에서 main 브랜치로 
+  access_key_id: "$AWS_ACCESS_KEY"
+  secret_access_key: "$AWS_SECRET_KEY"
+
+
+   
+
