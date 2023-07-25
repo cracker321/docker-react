@@ -13,6 +13,10 @@ RUN npm run build
 # 완료되었음을 전제로 함.
 # 즉, 위의 FROM statement 블럭과 이제 구분되는 것임.
 FROM nginx
+
+# nginx의 기본 포트 80을 EXPOSE(노출)시켜주고, 그러면 이후 Elastic Beanstalk이 아래 nginx 포트를 자동으로 매핑해줌.
+EXPOSE 80
+
 COPY --from=builder /app/build /usr/share/nginx/html
 
 
